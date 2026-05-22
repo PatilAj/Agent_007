@@ -1,0 +1,75 @@
+# Trading Agent - Base configuration
+# Override per environment in prod.yaml / paper.yaml / backtest.yaml
+
+market:
+  exchange: NSE
+  segment: NFO
+  timezone: Asia/Kolkata
+  open_time: "09:15"
+  close_time: "15:30"
+  square_off_time: "15:15"   # Intraday auto-flat
+  no_entry_after: "14:45"
+
+instruments:
+  # Underlyings we track (used to fetch option chains)
+  underlyings:
+    - symbol: NIFTY 50
+      exchange: NSE
+      lot_size: 75       # Confirm via instrument dump daily
+    - symbol: NIFTY BANK
+      exchange: NSE
+      lot_size: 35
+    - symbol: NIFTY FIN SERVICE
+      exchange: NSE
+      lot_size: 65
+  # Stock options to enable (start with index-only)
+  stocks: []
+
+data:
+  candle_resolutions: ["1minute", "3minute", "5minute", "15minute"]
+  historical_warmup_days: 5
+  tick_buffer_size: 1000
+  websocket_max_instruments: 3000
+
+risk:
+  slot_capital_inr: 50000
+  max_risk_per_trade_pct: 1.0
+  max_premium_per_trade_pct: 5.0
+  max_daily_loss_pct: 3.0
+  max_weekly_loss_pct: 6.0
+  max_monthly_dd_pct: 8.0
+  max_trades_per_day: 5
+  max_consecutive_losses: 3
+  cooldown_after_losses_hours: 24
+  max_concurrent_positions: 3
+  spread_max_pct: 2.0
+  premium_min_inr: 5.0
+
+option_selector:
+  expiry_preference: "current_week"
+  switch_to_next_week_days_left: 2
+  delta_target_min: 0.40
+  delta_target_max: 0.55
+  min_oi_index: 5000
+  min_oi_stock: 1000
+  iv_percentile_max: 90
+
+execution:
+  order_type: LIMIT
+  limit_offset_pct: 0.2
+  fill_timeout_seconds: 2
+  max_retry_attempts: 3
+  reconciler_interval_seconds: 60
+
+logging:
+  level: INFO
+  format: json
+  log_dir: logs/
+
+kill_switch:
+  enabled: true
+  flatten_on_trip: false   # Set true only after live experience
+
+notifications:
+  telegram_enabled: true
+  email_enabled: false

@@ -1,0 +1,56 @@
+# Secrets - NEVER commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+.kite_token
+access_token.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Data dumps
+data/
+*.parquet
+instrument_dump_*.csv
+
+# Local DB volumes
+postgres_data/
+redis_data/
+
+# Backtest outputs
+backtest_results/
+*.pkl
+
+# OS
+Thumbs.db

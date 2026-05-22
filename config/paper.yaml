@@ -1,0 +1,9 @@
+# Paper trading mode - safe defaults
+mode: paper
+
+execution:
+  send_to_broker: false
+  simulate_fills: true
+
+logging:
+  level: DEBUG
