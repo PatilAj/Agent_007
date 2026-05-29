@@ -36,6 +36,8 @@ from src.broker.instrument_catalog import find_underlying_token
 from src.broker.kite_ws import WSSManager
 from src.core.bus import (
     STREAM_BARS_1M,
+    STREAM_BARS_5M,
+    STREAM_BARS_15M,
     EventBus,
 )
 from src.core.config import settings
@@ -47,8 +49,12 @@ from src.data.db import get_session
 from src.data.models import Instrument
 from src.data.repositories.candles import run_candle_writer_loop
 from src.data.repositories.ticks import run_tick_writer_loop
+from src.execution import run_executor_loop, run_position_watcher
 from src.indicators import run_indicator_loop, warmup_calculators
 from src.regime import run_regime_loop
+from src.risk import run_risk_loop
+from src.strategies import run_strategy_loop
+from src.workers.daily_test import run_daily_test_loop
 
 log = get_logger(__name__)
 
@@ -114,10 +120,16 @@ async def main() -> int:
     # Warmup historical candles (Phase 1)
     await warmup(tokens)
 
-    # Warmup indicator calculators from DB (Phase 2)
+    # Warmup indicator calculators from DB (Phase 2).
+    # Three resolutions feed the strategy:
+    #   1m  -> RSI/ATR for SL sizing in ema_regime_v2
+    #   5m  -> medium-term EMA trend for MTF filter
+    #   15m -> long-term EMA trend for MTF filter
     tokens_with_symbols = [(t, symbol_map.get(t, f"TOKEN_{t}")) for t in tokens]
     n_replayed = await warmup_calculators(
-        tokens_with_symbols, resolutions=["1minute"], lookback=200
+        tokens_with_symbols,
+        resolutions=["1minute", "5minute", "15minute"],
+        lookback=200,
     )
     log.info("indicator_warmup_total", bars_replayed=n_replayed)
 
@@ -131,8 +143,23 @@ async def main() -> int:
     candle_writer_task = asyncio.create_task(
         run_candle_writer_loop(bus, stream=STREAM_BARS_1M)
     )
-    indicator_task = asyncio.create_task(run_indicator_loop(bus, stream=STREAM_BARS_1M))
+    # One indicator loop per timeframe — each has its own Redis consumer group
+    # so they don't compete for the same messages.
+    indicator_task_1m = asyncio.create_task(
+        run_indicator_loop(bus, stream=STREAM_BARS_1M, group="indicator-calc-1m")
+    )
+    indicator_task_5m = asyncio.create_task(
+        run_indicator_loop(bus, stream=STREAM_BARS_5M, group="indicator-calc-5m")
+    )
+    indicator_task_15m = asyncio.create_task(
+        run_indicator_loop(bus, stream=STREAM_BARS_15M, group="indicator-calc-15m")
+    )
     regime_task = asyncio.create_task(run_regime_loop(bus))
+    strategy_task = asyncio.create_task(run_strategy_loop(bus))
+    risk_task = asyncio.create_task(run_risk_loop(bus))
+    executor_task = asyncio.create_task(run_executor_loop(bus))
+    watcher_task = asyncio.create_task(run_position_watcher(bus))
+    daily_test_task = asyncio.create_task(run_daily_test_loop(bus))
 
     # Wait for kill signal
     stop_event = asyncio.Event()
@@ -159,8 +186,15 @@ async def main() -> int:
             tick_writer_task,
             aggregator_task,
             candle_writer_task,
-            indicator_task,
+            indicator_task_1m,
+            indicator_task_5m,
+            indicator_task_15m,
             regime_task,
+            strategy_task,
+            risk_task,
+            executor_task,
+            watcher_task,
+            daily_test_task,
         )
         for t in consumer_tasks:
             t.cancel()

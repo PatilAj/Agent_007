@@ -54,14 +54,12 @@ async def run_regime_loop(
                     RegimeUpdate(
                         event_id=str(uuid.uuid4()),
                         ts=update.ts,
+                        instrument_token=update.instrument_token,
+                        symbol=update.symbol,
+                        resolution=update.resolution,
                         label=label,
                         score=score,
-                        rationale={
-                            "instrument_token": update.instrument_token,
-                            "symbol": update.symbol,
-                            "resolution": update.resolution,
-                            **rationale,
-                        },
+                        rationale=rationale,
                     ),
                 )
                 log.info(

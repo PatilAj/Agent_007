@@ -12,16 +12,13 @@ market:
 
 instruments:
   # Underlyings we track (used to fetch option chains)
+  # NOTE: BANKNIFTY + FINNIFTY removed for the current paper soak — their
+  # monthly-only ATM premiums (~Rs 40k+ per lot) blow past the 5% per-trade
+  # budget on a Rs 50k account. Re-add when capital scales.
   underlyings:
     - symbol: NIFTY 50
       exchange: NSE
       lot_size: 75       # Confirm via instrument dump daily
-    - symbol: NIFTY BANK
-      exchange: NSE
-      lot_size: 35
-    - symbol: NIFTY FIN SERVICE
-      exchange: NSE
-      lot_size: 65
   # Stock options to enable (start with index-only)
   stocks: []
 

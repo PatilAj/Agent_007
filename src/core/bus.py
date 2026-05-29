@@ -33,6 +33,7 @@ log = get_logger(__name__)
 STREAM_TICKS = "stream:ticks"
 STREAM_BARS_1M = "stream:bars.1minute"
 STREAM_BARS_5M = "stream:bars.5minute"
+STREAM_BARS_15M = "stream:bars.15minute"
 STREAM_INDICATORS = "stream:indicators"
 STREAM_REGIME = "stream:regime"
 STREAM_SIGNALS = "stream:signals"
@@ -40,6 +41,7 @@ STREAM_ORDERS = "stream:orders"
 STREAM_ORDER_UPDATES = "stream:order_updates"
 STREAM_RISK_EVENTS = "stream:risk"
 STREAM_HEALTH = "stream:health"
+STREAM_NOTIFICATIONS = "stream:notifications"
 
 MAX_STREAM_LEN = 1_000_000   # cap stream length (~1M events, auto-trimmed)
 

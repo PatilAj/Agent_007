@@ -9,7 +9,7 @@ Lot sizes can change at expiry rollover. Never hardcode them.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timezone
 from decimal import Decimal
 from typing import Any
 
@@ -34,8 +34,13 @@ def _parse_expiry(raw: Any) -> datetime | None:
     if raw in (None, "", "1970-01-01"):
         return None
     if isinstance(raw, datetime):
-        # Kite SDK returns naive datetimes
+        # Kite SDK occasionally returns naive datetimes — localize to IST.
         return IST.localize(raw).astimezone(timezone.utc) if raw.tzinfo is None else raw
+    # date BUT NOT datetime: pykiteconnect returns datetime.date for option expiry.
+    # Must be checked AFTER the datetime branch since datetime is a subclass of date.
+    if isinstance(raw, date):
+        dt = datetime.combine(raw, time(0, 0))
+        return IST.localize(dt).astimezone(timezone.utc)
     if isinstance(raw, str):
         try:
             dt = datetime.fromisoformat(raw)

@@ -5,5 +5,12 @@ execution:
   send_to_broker: false
   simulate_fills: true
 
+risk:
+  # Paper-only capital bump. One ATM NIFTY weekly lot costs ~Rs 13.6k; the 5%
+  # premium cap means we need >= Rs 2.72L for a single lot to clear sizing.
+  # Rs 3L gives a 5% budget of Rs 15k so exactly one ATM lot fits per trade.
+  # base.yaml keeps the real Rs 50k for any future live run.
+  slot_capital_inr: 300000
+
 logging:
   level: DEBUG

@@ -75,6 +75,9 @@ class RegimeLabel(str, Enum):
 
 
 class RegimeUpdate(EventBase):
+    instrument_token: int
+    symbol: str
+    resolution: str
     label: RegimeLabel
     score: float  # 0-1 confidence
     rationale: dict[str, Any] = Field(default_factory=dict)

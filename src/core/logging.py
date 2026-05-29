@@ -52,10 +52,12 @@ def configure_logging(level: str = "INFO", format: str = "json", log_dir: str | 
         add_log_level,
         TimeStamper(fmt="iso", utc=True),
         StackInfoRenderer(),
-        format_exc_info,
     ]
 
+    # ConsoleRenderer formats exceptions itself; adding format_exc_info on top
+    # makes structlog emit a UserWarning per call. JSONRenderer needs it.
     if format == "json":
+        shared_processors.append(format_exc_info)
         renderer = JSONRenderer()
     else:
         renderer = structlog.dev.ConsoleRenderer(colors=True)

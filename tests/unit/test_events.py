@@ -146,11 +146,15 @@ def test_regime_label_enum():
     r = RegimeUpdate(
         event_id=_eid(),
         ts=_ts(),
+        instrument_token=256265,
+        symbol="NIFTY 50",
+        resolution="1minute",
         label=RegimeLabel.TRENDING_UP,
         score=0.8,
         rationale={"adx": 28},
     )
     assert r.label == RegimeLabel.TRENDING_UP
+    assert r.instrument_token == 256265
 
 
 def test_order_status_values():

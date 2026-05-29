@@ -127,6 +127,16 @@ class KiteClient:
         if cls_name == "NetworkException":
             log.warning("kite_network_error", fn=fn_name, error=msg)
             raise BrokerNetworkError(msg) from e
+        # Transient socket/TLS failures from the underlying requests/urllib3 stack
+        # (e.g. WinError 10054 RST during TLS handshake on corporate networks).
+        # These are NOT kiteconnect-typed; we map them to BrokerNetworkError so
+        # the retryer treats them as retryable instead of fatal.
+        if cls_name in {
+            "ConnectionError", "ConnectTimeout", "ReadTimeout", "Timeout",
+            "ChunkedEncodingError", "SSLError", "ProtocolError",
+        } or isinstance(e, (ConnectionError, TimeoutError, OSError)):
+            log.warning("kite_transient_network_error", fn=fn_name, error_class=cls_name, error=msg)
+            raise BrokerNetworkError(f"{cls_name}: {msg}") from e
         if "Too many requests" in msg:
             log.warning("kite_rate_limit", fn=fn_name, error=msg)
             raise BrokerRateLimitError(msg) from e
